@@ -1,6 +1,6 @@
 {
   "name": "range-lock",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Distributed time-range locking engine backed by redis and MySQL",
   "main": "index.js",
   "scripts": {
