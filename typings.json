@@ -1,0 +1,10 @@
+{
+  "name": "locations",
+  "version": false,
+  "dependencies": {
+  },
+  "ambientDependencies": {
+    "mocha": "registry:dt/mocha#2.2.5+20151023103246",
+    "node": "registry:dt/node#4.0.0+20160316042000"
+  }
+}

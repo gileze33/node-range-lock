@@ -4,7 +4,10 @@
   "description": "Distributed time-range locking engine backed by redis and MySQL",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+	"build": "tsc -p .",
+    "test": "mocha",
+    "start": "node index.js",
+    "coverage": "NODE_ENV=test istanbul cover node_modules/mocha/bin/_mocha --"
   },
   "repository": {
     "type": "git",
