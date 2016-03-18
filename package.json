@@ -4,7 +4,7 @@
   "description": "Distributed time-range locking engine backed by redis and MySQL",
   "main": "index.js",
   "scripts": {
-	"build": "tsc -p .",
+    "build": "tsc -p .",
     "test": "mocha",
     "start": "node index.js",
     "coverage": "NODE_ENV=test istanbul cover node_modules/mocha/bin/_mocha --"
@@ -22,7 +22,10 @@
     "node-redis-warlock": "^0.1.2",
     "orm": "^2.1.20",
     "redis": "^0.12.1",
-    "uuid": "^2.0.1"
+    "sequelize": "^3.19.3",
+    "sequelize-cli": "^2.3.1",
+    "uuid": "^2.0.1",
+    "validator": "^5.1.0"
   },
   "devDependencies": {
     "chai": "^1.10.0",
