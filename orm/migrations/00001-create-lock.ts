@@ -19,7 +19,13 @@ export function up(queryInterface, Sequelize) {
     },
     data: {
       type: Sequelize.STRING,
-    }
+    },
+    createdAt: {
+      type: Sequelize.DATE,
+    },
+    updatedAt: {
+      type: Sequelize.DATE,
+    },
   });
 }
 

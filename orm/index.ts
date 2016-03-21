@@ -42,28 +42,13 @@ function sequelizeConnect(url: string){
     tableName: 'lock',
   });
 
-  return new Promise((resolve, reject) => {
-    sequelize.query('select 1')
-    .then(() =>{
-      return Lock.findAll({
-        where:{
-          id:{$lt:"1", $gt:"2"}
-        }
-      });
-    })
-    .then(()=>{
-      resolve({
-        Sequelize,
-        sequelize,
-        models: {
-          Lock
-        }
-      })
-    })
-    .catch(err=> { //?
-      reject(err)
-    })
-  });
+  return {
+    Sequelize,
+    sequelize,
+    models: {
+      Lock
+    }
+  }
 };
 
 export default sequelizeConnect;

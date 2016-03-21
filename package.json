@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chai": "^1.10.0",
     "debug": "^2.1.1",
     "extend": "^2.0.0",
     "mysql": "^2.5.4",

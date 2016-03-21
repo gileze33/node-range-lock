@@ -2,9 +2,7 @@
 /* istanbul ignore next */ const DB_NAME = process.env['DB_NAME'] || 'assetra_locks';
 /* istanbul ignore next */ const DB_URL = process.env['DB_URL'] || DB_URL_BASE + '/' + DB_NAME;
 
-console.log(`$DBURL was ${process.env['DB_URL']}`)
 process.env['DB_URL'] = DB_URL;
-console.log(`$DBURL now ${process.env['DB_URL']}`)
 
 import Sequelize = require('sequelize');
 
