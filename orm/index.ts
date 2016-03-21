@@ -1,5 +1,8 @@
-import Sequelize = require('sequelize');
+/* TODO integrate with models/connection/config.
+ * HOWEVER must still accept url as a param at construction
+ */
 
+import Sequelize = require('sequelize');
 /* url including uname, password & database
  */
 function sequelizeConnect(url: string){

@@ -4,12 +4,12 @@ import LockStore from './lib/LockStore';
 const debugLib = require('debug');
 const debug = debugLib('range-lock');
 
-var RangeLock = function(redisClient, storeURL) {
+function RangeLock(redisClient, storeURL) {
     if(!redisClient) {
         throw new Error('You must provide a redis client as the first parameter to RangeLock()');
     }
 
-    debug('Initialising RangeLock with storeURL='+storeURL);
+    debug(`Initialising RangeLock with storeURL=${storeURL}`);
 
     this.warlock = Warlock(redisClient);
     this.store = new LockStore(storeURL);
@@ -17,35 +17,35 @@ var RangeLock = function(redisClient, storeURL) {
 
 RangeLock.prototype.processLock = function processLock(key, cb) {
     // set a lock optimistically
-    var warlockKey = 'range-lock::'+key;
-    var ttl = 1000;
-    var maxAttempts = 20; // Max number of times to try setting the lock before erroring
-    var wait = 100; // Time to wait before another attempt if lock already in place
-    this.warlock.optimistic(warlockKey, ttl, maxAttempts, wait, function(err, unlock) {
+    const warlockKey = `range-lock::${key}`;
+    const ttl = 1000;
+    const maxAttempts = 20; // Max number of times to try setting the lock before erroring
+    const wait = 100; // Time to wait before another attempt if lock already in place
+    this.warlock.optimistic(warlockKey, ttl, maxAttempts, wait, (err, unlock) => {
         if(err) {
             //debug('warlock return an error attempting to obtain a lock on key='+key, err);
             return cb(err);
         }
 
-        debug('warlock locked key='+warlockKey);
+        debug(`warlock locked key=${warlockKey}`);
         cb(null, unlock);
     });
 };
 
 RangeLock.prototype.set = function set(key, from, to, data, ttl, cb) {
     // attempt to set a lock
-    var self = this;
+    let self = this;
 
     self.processLock(key, (err, unlock) => {
         if(err) {
-            debug('set::processLock got error for key='+key);
+            debug(`set::processLock got error for key=${key}`);
             return cb(err);
         }
 
         self.store.find(key, from, to, (err, results) => {
             if(err) {
                 unlock();
-                debug('set::store.find got error for key='+key);
+                debug(`set::store.find got error for key=${key}`);
                 return cb(err);
             }
 
@@ -53,7 +53,7 @@ RangeLock.prototype.set = function set(key, from, to, data, ttl, cb) {
                 // a lock already exists for the key during the specified range
                 unlock();
 
-                var lock = results[0];
+                let lock = results[0];
                 lock.release = self.clear.bind(self, key, lock.id);
                 return cb(null, false, lock);
             }
@@ -61,7 +61,7 @@ RangeLock.prototype.set = function set(key, from, to, data, ttl, cb) {
             self.store.create(key, from, to, data, ttl, (err, lock) => {
                 if(err) {
                     unlock();
-                    debug('set::store.create got error for key='+key);
+                    debug(`set::store.create got error for key=${key}`);
                     return cb(err);
                 }
 
@@ -75,11 +75,11 @@ RangeLock.prototype.set = function set(key, from, to, data, ttl, cb) {
 
 RangeLock.prototype.get = function get(key, lockID, cb) {
     // validate a specific lockID is still valid
-    var self = this;
+    let self = this;
 
     self.processLock(key, (err, unlock) => {
         if(err) {
-            debug('get::processLock got error for key='+key);
+            debug(`get::processLock got error for key=${key}`);
             return cb(err);
         }
 
@@ -94,11 +94,11 @@ RangeLock.prototype.get = function get(key, lockID, cb) {
 
 RangeLock.prototype.clear = function invalidate(key, lockID, cb) {
     // invalidate a specific lockID
-    var self = this;
+    let self = this;
 
     self.processLock(key, (err, unlock) => {
         if(err) {
-            debug('invalidate::processLock got error for key='+key);
+            debug(`invalidate::processLock got error for key=${key}`);
             return cb(err);
         }
 

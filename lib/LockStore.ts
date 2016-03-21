@@ -2,7 +2,7 @@ import sequelizeConnect from '../orm';
 const uuid = require('uuid');
 const debug = require('debug')('range-lock');
 
-const LockStore = function(url) {
+function LockStore(url) {
     this.url = url;
     this.ready = false;
     this.connecting = false;
@@ -28,15 +28,15 @@ LockStore.prototype.connect = function(cb) {
     }
     this.connecting = true;
 
-    var done = function() {
+    function done() {
         cb();
         if(store.connectQueue.length > 0) {
-            for(var i=0; i<store.connectQueue.length; i++) {
+            for(let i=0; i<store.connectQueue.length; i++) {
                 store.connectQueue[i]();
             }
         }
     };
-    var store = this;
+    let store = this;
 
     sequelizeConnect(this.url)
       .then((s: {Sequelize:any, sequelize:any, models:any}) => {
@@ -49,12 +49,12 @@ LockStore.prototype.connect = function(cb) {
           done();
       })
       .catch(err => {
-        console.log(`'`FATAL: range-lock LockStore failed to connect to data store``);
+        console.log(`FATAL: range-lock LockStore failed to connect to data store`);
         throw err;
       });
 };
 
-var generateIntersectsSQL = function generateIntersectsSQL(start, end) {
+ function generateIntersectsSQL(start, end) {
     // start and end should both look like = {"field": "xxx", "value": 0}
 
     start.value = start.value * 1;
@@ -78,10 +78,10 @@ var generateIntersectsSQL = function generateIntersectsSQL(start, end) {
     //return '((`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+end.value+') OR (`'+start.field+'` >= '+start.value+' AND `'+start.field+'` <= '+end.value+' AND `'+end.field+'` >= '+end.value+') OR (`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+') OR (`'+start.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+'))';
 };
 LockStore.prototype.find = function find(key, from, to, cb) {
-    var store = this;
+    let store = this;
 
     // find any valid entries for this key where the from / to overlaps the passed info
-    var now = new Date().getTime();
+    let now = new Date().getTime();
     store.db.models.lock.findAll({where: {
         key: key,
         expiry:{
@@ -95,7 +95,7 @@ LockStore.prototype.find = function find(key, from, to, cb) {
           value: to
         })
       }}).then((results) => {
-        debug('find for key='+key+', from='+from+', to='+to+' got '+results.length+' results');
+        debug(`find for key=${key}, from=${from}, to=${to} got ${results.length} results`);
         cb(null, results);
     }).catch(err => {
       return cb(err);
@@ -103,23 +103,23 @@ LockStore.prototype.find = function find(key, from, to, cb) {
 };
 
 LockStore.prototype.create = function create(key, from, to, data, ttl, cb) {
-    var store = this;
+    let store = this;
 
     // generate a string ID for this lock, check it doesn't exist already and then insert it
-    var createLock = function createLock() {
-        var now = new Date().getTime();
-        var nowStr = (now+'');
-        var lockID = nowStr.substr(-5) + '-' + nowStr.substr(-10, 5) + '-' + uuid.v4();
+    function createLock() {
+        const now = new Date().getTime();
+        const nowStr = (now+'');
+        const lockID = `${nowStr.substr(-5)}-${nowStr.substr(-10, 5)}-${uuid.v4()}`;
 
         store.db.models.lock.count({ where: {
             id: lockID
         }}).then(count => {
             if(count > 0) {
-                debug('found conflict for lock id '+lockID);
+                debug(`found conflict for lock id ${lockID}`);
                 return createLock();
             }
 
-            var obj = {
+            let obj = {
                 key: key,
                 from: from,
                 to: to,
@@ -128,7 +128,7 @@ LockStore.prototype.create = function create(key, from, to, data, ttl, cb) {
                 id: null
             };
             obj.id = lockID;
-            debug('creating lock with ID '+lockID, obj);
+            debug(`creating lock with ID ${lockID}`, obj);
             return store.db.models.lock.create(obj)
         })
         .then(result => {
@@ -142,10 +142,10 @@ LockStore.prototype.create = function create(key, from, to, data, ttl, cb) {
 };
 
 LockStore.prototype.get = function find(key, lockID, cb) {
-    var store = this;
+    let store = this;
 
     // find the specified lock - returns null if not found
-    var now = new Date().getTime();
+    const now = new Date().getTime();
     store.db.models.lock.findAll({where: {
         key: key,
         id: lockID,
@@ -155,11 +155,11 @@ LockStore.prototype.get = function find(key, lockID, cb) {
     }})
     .then(results => {
         if(results.length === 0) {
-            debug('get for key='+key+', id='+lockID+' found no valid locks');
+            debug(`get for key=${key}, id=${lockID} found no valid locks`);
             return cb(null, null);
         }
-        var lock = results[0];
-        debug('get for key='+key+', id='+lockID+' found a valid lock', lock);
+        let lock = results[0];
+        debug(`get for key=${key}, id=${lockID} found a valid lock`, lock);
         cb(null, lock);
     })
     .catch(err => {
@@ -168,9 +168,9 @@ LockStore.prototype.get = function find(key, lockID, cb) {
 };
 
 LockStore.prototype.remove = function remove(key, lockID, cb) {
-    var store = this;
+    let store = this;
 
-    debug('deleting lock with key='+key+', id='+lockID);
+    debug(`deleting lock with key=${key}, id=${lockID}`);
 
     store.db.models.lock.destroy({where: {
         key: key,
@@ -186,9 +186,9 @@ LockStore.prototype.remove = function remove(key, lockID, cb) {
 
 LockStore.prototype.tidy = function tidy(cb) {
     // this method will go thru and remove any records where their expiry has passed
-    var store = this;
+    let store = this;
 
-    var now = new Date().getTime();
+    const now = new Date().getTime();
 
     store.db.models.lock.count({ where: {
         expiry: {
@@ -196,7 +196,7 @@ LockStore.prototype.tidy = function tidy(cb) {
         }
     }})
     .then(count => {
-        debug('tidy found '+count+' items to remove');
+        debug(`tidy found ${count} items to remove`);
         return store.db.models.lock.destroy({where: {
             expiry: {
               $lte: now
@@ -204,11 +204,11 @@ LockStore.prototype.tidy = function tidy(cb) {
         }})
     })
     .then(result => {
-      debug('tidy completed');
+      debug(`tidy completed`);
     })
     .catch(err => {
       if(cb) cb(err);
-      debug('tidy got error', err);
+      debug(`tidy got error`, err);
 
       return;
     })
