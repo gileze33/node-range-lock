@@ -33,6 +33,7 @@ function sequelizeConnect(url: string){
     }
   }, {
     tableName: 'lock',
+    timestamps: false
   });
 
   return {
