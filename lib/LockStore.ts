@@ -2,12 +2,71 @@ import sequelizeConnect from '../sequelize';
 const uuid = require('uuid');
 const debug:Function = require('debug')('range-lock');
 
-function LockStore(url:string) {
+function generateIntersectsSQL(start:{field:string, value:number}, end:{field:string, value:number}): {$and?:{}, $or?:{}}[] {
+   // start and end should both look like = {"field": "xxx", "value": 0}
+
+   start.value = start.value * 1;
+   end.value = end.value * 1;
+   let orQuery:{$and:{}}[]  = [{$and:{}},{$and:{}},{$and:{}},{$and:{}}];
+
+   orQuery[0]['$and'][start.field] = {$lte: start.value};
+   orQuery[0]['$and'][end.field] = {$gte: end.value};
+
+   orQuery[1]['$and'][start.field] = {$gte: start.value};
+   orQuery[1]['$and'][start.field] = {$lte: end.value};
+   orQuery[1]['$and'][end.field] = {$gte: end.value};
+
+   orQuery[2]['$and'][start.field] = {$lte: start.value};
+   orQuery[2]['$and'][end.field] = {$gte: start.value};
+   orQuery[2]['$and'][end.field] = {$lte: end.value};
+
+   orQuery[3]['$and'][start.field] = {$gte: start.value};
+   orQuery[3]['$and'][end.field] = {$lte: end.value};
+
+   return orQuery;
+   // return '((`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+end.value+')
+   // OR (`'+start.field+'` >= '+start.value+' AND `'+start.field+'` <= '+end.value+' AND `'+end.field+'` >= '+end.value+')
+   // OR (`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+')
+   // OR (`'+start.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+'))';
+};
+
+interface Ilock {
+  key: string;
+  from: string;
+  to: string;
+  expiry: string;
+  id?: string;
+  data: string;
+}
+interface IConnectCB {
+  (): void;
+}
+interface ILockStore {
+  url: string;
+  ready: boolean;
+  connecting: boolean;
+  connectQueue?:IConnectCB[];
+  db?: {
+    models:{
+      Lock:any; // sequelize model Obj
+    }
+  }
+  
+  // methods
+  tidy?: {():void};
+  connect?: {(cb:IConnectCB):void};
+  find?: {(key:string, from:number, to:number, cb:Function):void};
+  create?: {(key:string, from:number, to:number, data:string, ttl:number, cb:Function):void};
+  get?: {(key:string, lockID:string, cb:Function):void};
+  remove?: {(key:string, lockID:string, cb:Function):void};
+}
+
+function LockStore(url:string):void {
     this.url = url;
     this.ready = false;
     this.connecting = false;
 
-    let store:any = this;
+    let store:ILockStore = this;
     this.connect(() => {
         debug(`LockStore connected to data store at ${url}`);
 
@@ -18,7 +77,7 @@ function LockStore(url:string) {
     });
 };
 
-LockStore.prototype.connect = function(cb:Function) {
+LockStore.prototype.connect = function(cb:IConnectCB):void {
     if(this.ready) {
         return cb();
     }
@@ -36,7 +95,7 @@ LockStore.prototype.connect = function(cb:Function) {
             }
         }
     };
-    let store:any = this;
+    let store:ILockStore = this;
     try {
       const {Sequelize, sequelize, models} = sequelizeConnect(this.url);
       store.db = {
@@ -50,32 +109,8 @@ LockStore.prototype.connect = function(cb:Function) {
     }
 };
 
- function generateIntersectsSQL(start:{field:string, value:number}, end:{field:string, value:number}) {
-    // start and end should both look like = {"field": "xxx", "value": 0}
-
-    start.value = start.value * 1;
-    end.value = end.value * 1;
-    let orQuery:Object[]  = [{},{},{},{}];
-    orQuery[0]['$and'] = {};
-    orQuery[0]['$and'][start.field] = {$lte: start.value};
-    orQuery[0]['$and'][end.field] = {$gte: end.value};
-    orQuery[1]['$and'] = {};
-    orQuery[1]['$and'][start.field] = {$gte: start.value};
-    orQuery[1]['$and'][start.field] = {$lte: end.value};
-    orQuery[1]['$and'][end.field] = {$gte: end.value};
-    orQuery[2]['$and'] = {};
-    orQuery[2]['$and'][start.field] = {$lte: start.value};
-    orQuery[2]['$and'][end.field] = {$gte: start.value};
-    orQuery[2]['$and'][end.field] = {$lte: end.value};
-    orQuery[3]['$and'] = {};
-    orQuery[3]['$and'][start.field] = {$gte: start.value};
-    orQuery[3]['$and'][end.field] = {$lte: end.value};
-
-    return orQuery;
-    //return '((`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+end.value+') OR (`'+start.field+'` >= '+start.value+' AND `'+start.field+'` <= '+end.value+' AND `'+end.field+'` >= '+end.value+') OR (`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+') OR (`'+start.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+'))';
-};
-LockStore.prototype.find = function find(key:string, from:number, to:number, cb:Function) {
-    let store = this;
+LockStore.prototype.find = function find(key:string, from:number, to:number, cb:Function):void {
+    let store:ILockStore = this;
 
     // find any valid entries for this key where the from / to overlaps the passed info
     let now:number = new Date().getTime();
@@ -99,8 +134,8 @@ LockStore.prototype.find = function find(key:string, from:number, to:number, cb:
     });
 };
 
-LockStore.prototype.create = function create(key, from, to, data, ttl, cb) {
-    let store = this;
+LockStore.prototype.create = function create(key:string, from:number, to:number, data:string, ttl:number, cb:Function):void {
+    let store:ILockStore = this;
 
     // generate a string ID for this lock, check it doesn't exist already and then insert it
     function createLock() {
@@ -116,13 +151,12 @@ LockStore.prototype.create = function create(key, from, to, data, ttl, cb) {
                 return createLock();
             }
 
-            let obj:any = {
+            let obj:Ilock = {
                 key: key,
-                from: from,
-                to: to,
-                expiry: now + ttl,
-                data: data,
-                id: null
+                from: from.toString(10),
+                to: to.toString(10),
+                expiry: (now + ttl).toString(10),
+                data: data
             };
             obj.id = lockID;
             debug(`creating lock with ID ${lockID}`, obj);
@@ -138,8 +172,8 @@ LockStore.prototype.create = function create(key, from, to, data, ttl, cb) {
     createLock();
 };
 
-LockStore.prototype.get = function find(key:string, lockID:string, cb:Function) {
-    let store = this;
+LockStore.prototype.get = function find(key:string, lockID:string, cb:Function):void {
+    let store:ILockStore = this;
 
     // find the specified lock - returns null if not found
     const now:number = new Date().getTime();
@@ -155,7 +189,7 @@ LockStore.prototype.get = function find(key:string, lockID:string, cb:Function) 
             debug(`get for key=${key}, id=${lockID} found no valid locks`);
             return cb(null, null);
         }
-        let lock:any = results[0];
+        let lock:Ilock = results[0];
         debug(`get for key=${key}, id=${lockID} found a valid lock`, lock);
         cb(null, lock);
     })
@@ -164,8 +198,8 @@ LockStore.prototype.get = function find(key:string, lockID:string, cb:Function) 
     });
 };
 
-LockStore.prototype.remove = function remove(key, lockID, cb) {
-    let store = this;
+LockStore.prototype.remove = function remove(key:string, lockID:string, cb:Function):void {
+    let store:ILockStore = this;
 
     debug(`deleting lock with key=${key}, id=${lockID}`);
 
@@ -181,9 +215,9 @@ LockStore.prototype.remove = function remove(key, lockID, cb) {
     });
 };
 
-LockStore.prototype.tidy = function tidy(cb) {
+LockStore.prototype.tidy = function tidy(cb:Function):void {
     // this method will go thru and remove any records where their expiry has passed
-    let store = this;
+    let store:ILockStore = this;
 
     const now:number = new Date().getTime();
 
