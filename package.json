@@ -7,7 +7,9 @@
     "build": "tsc -p .",
     "test": "mocha",
     "start": "node index.js",
-    "coverage": "NODE_ENV=test istanbul cover node_modules/mocha/bin/_mocha --"
+    "coverage": "NODE_ENV=test istanbul cover node_modules/mocha/bin/_mocha --",
+    "preversion": "npm run build && npm run test -- --bail",
+    "postversion": "git push --follow-tags"
   },
   "repository": {
     "type": "git",
