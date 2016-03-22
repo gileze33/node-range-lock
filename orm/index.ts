@@ -1,7 +1,3 @@
-/* TODO integrate with models/connection/config.
- * HOWEVER must still accept url as a param at construction
- */
-
 import Sequelize = require('sequelize');
 /* url including uname, password & database
  */
@@ -14,9 +10,6 @@ function sequelizeConnect(url: string){
   }
   const sequelize = new Sequelize(url, sqlOpts);
 
-  //TODO contracts
-  /*interface Lock extends ILock {};
-  export interface LockInstance extends Sequelize.Instance<LockInstance, Lock>, Lock {} */
   const Lock = sequelize.define('lock', {
     id: {
       type: Sequelize.STRING,
