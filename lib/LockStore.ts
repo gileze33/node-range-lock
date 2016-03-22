@@ -41,7 +41,7 @@ interface Ilock {
 interface IConnectCB {
   (): void;
 }
-interface ILockStore {
+ interface ILockStore {
   url: string;
   ready: boolean;
   connecting: boolean;
@@ -51,7 +51,7 @@ interface ILockStore {
       Lock:any; // sequelize model Obj
     }
   }
-  
+
   // methods
   tidy?: {():void};
   connect?: {(cb:IConnectCB):void};
@@ -245,4 +245,4 @@ LockStore.prototype.tidy = function tidy(cb:Function):void {
     })
 };
 
-export default LockStore;
+export {LockStore, ILockStore}

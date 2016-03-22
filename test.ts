@@ -1,9 +1,12 @@
 import * as url from 'url';
+import assert = require('assert');
+
 let redis:any = null;
 let client:any = null;
 let RangeLock:any = null;
-let DB_URL:any = null;
+let DB_URL:string = null;
 let rangeLock:any = null;
+let lockRelease:Function = null;
 
 describe('setup', () => {
   it('should complete', done => {
@@ -37,14 +40,18 @@ describe('setup', () => {
 const testKey:string = 'lock::org_1::asset_1';
 const testFrom:number = new Date().getTime();
 const testTo:number = new Date().getTime() + 60*60*1000;
-const testData:string = "{test:1}";
-const testTtl:number = 60*60*1000;
+const testData:string = JSON.stringify({test:1});
+const testTtl:number = 2*60*1000;
 let lockId:string = null;
 
 describe('interface', () => {
   it('should set', done => {
-    rangeLock.set(testKey, testFrom, testTo, testData, testTtl, (err, data, lock) => {
+    rangeLock.set(testKey, testFrom, testTo, testData, testTtl, (err, success, lock) => {
       if (err) throw err;
+      assert(success === true, 'success !== true');
+      assert(typeof lock.id == 'string', 'malformed lock id');
+      assert(typeof lock.release == 'function', 'malformed lock release');
+      assert(lock.expiry == parseInt(lock.expiry.toString(10)), 'malformed lock expiry');
       lockId = lock.id;
       done();
     });
@@ -52,8 +59,20 @@ describe('interface', () => {
   it('should get', done => {
     rangeLock.get(testKey, lockId, (err, lock) => {
       if (err) throw err;
-
+      assert.doesNotThrow(() => {
+        console.log(lock.data)
+        let obj = JSON.parse(lock.data);
+      });
+      assert(typeof lock.release == 'function', 'malformed lock release');
+      lockRelease = lock.release
       done()
     });
   });
+  it('should return releasable locks', done => {
+    lockRelease((err) => {
+      if (err) throw err;
+      done()
+    });
+  });
+
 });

@@ -1,7 +1,14 @@
 import Sequelize = require('sequelize');
+
+interface ISequelize {
+  Sequelize: any; // lib
+  sequelize: any; // instance
+  models: any   // table models
+}
+
 /* url including uname, password & database
  */
-function sequelizeConnect(url: string){
+function sequelizeConnect(url: string): ISequelize{
   let sqlOpts:any = {
     'autoMigrateOldSchema': true
   };
