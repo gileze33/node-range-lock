@@ -60,7 +60,6 @@ describe('interface', () => {
     rangeLock.get(testKey, lockId, (err, lock) => {
       if (err) throw err;
       assert.doesNotThrow(() => {
-        console.log(lock.data)
         let obj = JSON.parse(lock.data);
       });
       assert(typeof lock.release == 'function', 'malformed lock release');
