@@ -103,6 +103,9 @@ LockStore.prototype.connect = function(cb:IConnectCB):void {
       };
       store.ready = true;
       store.connecting = false;
+
+      console.log('this.url')
+      console.log(this.url)
       done();
     } catch (err){
       console.log(`FATAL: range-lock LockStore failed to connect to data store`);
