@@ -15,12 +15,12 @@ function RangeLock(redisClient, storeURL) {
     this.store = new LockStore(storeURL);
 };
 
-RangeLock.prototype.processLock = function processLock(key, cb) {
+RangeLock.prototype.processLock = function processLock(key:string, cb:Function) {
     // set a lock optimistically
-    const warlockKey = `range-lock::${key}`;
-    const ttl = 1000;
-    const maxAttempts = 20; // Max number of times to try setting the lock before erroring
-    const wait = 100; // Time to wait before another attempt if lock already in place
+    const warlockKey:string = `range-lock::${key}`;
+    const ttl:number = 1000;
+    const maxAttempts:number = 20; // Max number of times to try setting the lock before erroring
+    const wait:number = 100; // Time to wait before another attempt if lock already in place
     this.warlock.optimistic(warlockKey, ttl, maxAttempts, wait, (err, unlock) => {
         if(err) {
             //debug('warlock return an error attempting to obtain a lock on key='+key, err);
@@ -32,7 +32,7 @@ RangeLock.prototype.processLock = function processLock(key, cb) {
     });
 };
 
-RangeLock.prototype.set = function set(key, from, to, data, ttl, cb) {
+RangeLock.prototype.set = function set(key:string, from:number, to:number, data:string, ttl:number, cb:Function) {
     // attempt to set a lock
     let self = this;
 
@@ -73,7 +73,7 @@ RangeLock.prototype.set = function set(key, from, to, data, ttl, cb) {
     });
 };
 
-RangeLock.prototype.get = function get(key, lockID, cb) {
+RangeLock.prototype.get = function get(key:string, lockID:string, cb:Function) {
     // validate a specific lockID is still valid
     let self = this;
 
