@@ -1,0 +1,15 @@
+machine:
+  node:
+    version: 5.5.0
+
+dependencies:
+  cache_directories:
+    - "node_modules"
+  override:
+    - npm install
+    - npm prune
+
+test:
+  override:
+    - npm run build
+    - npm test
