@@ -6,7 +6,8 @@ let client:any = null;
 let RangeLock:any = null;
 let DB_URL:string = null;
 let rangeLock:any = null;
-let lockRelease:Function = null;
+let lockReleaseFromGet:Function = null;
+let lockReleaseFromSet:Function = null;
 
 describe('setup', () => {
   it('should complete', done => {
@@ -53,6 +54,7 @@ describe('interface', () => {
       assert(typeof lock.release == 'function', 'malformed lock release');
       assert(lock.expiry == parseInt(lock.expiry.toString(10)), 'malformed lock expiry');
       lockId = lock.id;
+      lockReleaseFromSet = lock.release;
       done();
     });
   });
@@ -63,15 +65,20 @@ describe('interface', () => {
         let obj = JSON.parse(lock.data);
       });
       assert(typeof lock.release == 'function', 'malformed lock release');
-      lockRelease = lock.release
+      lockReleaseFromGet = lock.release;
       done()
     });
   });
-  it('should return releasable locks', done => {
-    lockRelease((err) => {
+  it('should return releasable locks from set', done => {
+    lockReleaseFromSet((err) => {
       if (err) throw err;
       done()
     });
   });
-
+  it('should return releasable locks from get', done => {
+    lockReleaseFromGet((err) => {
+      if (err) throw err;
+      done()
+    });
+  });
 });
