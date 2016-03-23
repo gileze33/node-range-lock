@@ -42,6 +42,7 @@ function sequelizeConnect(url: string): ISequelize{
     tableName: 'lock',
     timestamps: false
   });
+  Lock.sync();
 
   return {
     Sequelize,
