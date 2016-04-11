@@ -53,9 +53,7 @@ class LockStore {
 
           // make the client tidy up the DB every 30 seconds
           setInterval(() => {
-              this.tidy(err => {
-                if (err) debug(`tidy err: ${err}`)
-              });
+              this.tidy();
           }, 30000)
       });
   };
@@ -121,104 +119,114 @@ class LockStore {
   create(key:string, from:number, to:number, data:string, ttl:number, cb:Function):void {
       // generate a string ID for this lock, check it doesn't exist already and then insert it
       const createLock = () => {
-          const now:number = new Date().getTime();
-          const nowStr:string = (now+'');
-          const lockID:string = `${nowStr.substr(-5)}-${nowStr.substr(-10, 5)}-${uuid.v4()}`;
+        const now:number = new Date().getTime();
+        const nowStr:string = (now+'');
+        const lockID:string = `${nowStr.substr(-5)}-${nowStr.substr(-10, 5)}-${uuid.v4()}`;
 
-          this.db.models.Lock.count({ where: {
-              id: lockID
-          }}).then(count => {
-              if(count > 0) {
-                  debug(`found conflict for lock id ${lockID}`);
-                  return createLock();
-              }
+        this.db.models.Lock.count({
+          where: {
+            id: lockID
+          }
+        }).then(count => {
+            if(count > 0) {
+                debug(`found conflict for lock id ${lockID}`);
+                return createLock();
+            }
 
-              let obj:Ilock = {
-                  key: key,
-                  from: from.toString(10),
-                  to: to.toString(10),
-                  expiry: (now + ttl).toString(10),
-                  data: data
-              };
-              obj.id = lockID;
-              debug(`creating lock with ID ${lockID}`, obj);
-              return this.db.models.Lock.create(obj)
-          })
-          .then(result => {
-            if(cb) cb(null, result);
-          })
-          .catch(err => {
-            return cb(err);
-          });
+            let obj:Ilock = {
+                key: key,
+                from: from.toString(10),
+                to: to.toString(10),
+                expiry: (now + ttl).toString(10),
+                data: data
+            };
+            obj.id = lockID;
+            debug(`creating lock with ID ${lockID}`, obj);
+            return this.db.models.Lock.create(obj)
+        })
+        .then(result => {
+          if(cb) cb(null, result);
+        })
+        .catch(err => {
+          return cb(err);
+        });
       };
       createLock();
   };
 
   get(key:string, lockID:string, cb:Function):void {
-      // find the specified lock - returns null if not found
-      const now:number = new Date().getTime();
-      this.db.models.Lock.findAll({where: {
-          key: key,
-          id: lockID,
-          expiry: {
-            $gt: now
-          }
-      }})
-      .then(results => {
-          if(results.length === 0) {
-              debug(`get for key=${key}, id=${lockID} found no valid locks`);
-              return cb(null, null);
-          }
-          let lock:Ilock = results[0];
-          debug(`get for key=${key}, id=${lockID} found a valid lock`, lock);
-          cb(null, lock);
-      })
-      .catch(err => {
-        return cb(err);
-      });
+    // find the specified lock - returns null if not found
+    const now:number = new Date().getTime();
+    this.db.models.Lock.findAll({
+      where: {
+        key: key,
+        id: lockID,
+        expiry: {
+          $gt: now
+        }
+      }
+    })
+    .asCallback((err, results) => {
+      if(err) {
+        if(cb) cb(err);
+        return
+      }
+
+      if(results.length === 0) {
+        debug(`get for key=${key}, id=${lockID} found no valid locks`);
+        if(cb) cb(null, null);
+        return;
+      }
+
+      let lock:Ilock = results[0];
+      debug(`get for key=${key}, id=${lockID} found a valid lock`, lock);
+      if(cb) cb(null, lock);
+    });
   };
 
   remove(key:string, lockID:string, cb:Function):void {
-      debug(`deleting lock with key=${key}, id=${lockID}`);
+    debug(`deleting lock with key=${key}, id=${lockID}`);
 
-      this.db.models.Lock.destroy({where: {
-          key: key,
-          id: lockID
-      }})
-      .then(result => {
-          if(cb) cb(null, result);
-      })
-      .catch(err => {
-        return cb(err);
-      });
+    this.db.models.Lock.destroy({
+      where: {
+        key: key,
+        id: lockID,
+      },
+    })
+    .asCallback((err, result) => {
+      if(cb) cb(err, result);
+    });
   };
 
-  tidy(cb:Function):void {
-      // this method will go thru and remove any records where their expiry has passed
-      const now:number = new Date().getTime();
+  tidy():void {
+    // this method will go thru and remove any records where their expiry has passed
+    const now:number = new Date().getTime();
 
-      this.db.models.Lock.count({ where: {
-          expiry: {
-            $lte: now
-          }
-      }})
-      .then(count => {
-          debug(`tidy found ${count} items to remove`);
-          return this.db.models.Lock.destroy({where: {
-              expiry: {
-                $lte: now
-              }
-          }})
-      })
-      .then(result => {
-        debug(`tidy completed`);
-      })
-      .catch(err => {
-        if(cb) cb(err);
-        debug(`tidy got error`, err);
+    this.db.models.Lock.count({
+      where: {
+        expiry: {
+          $lte: now,
+        },
+      },
+    })
+    .then(count => {
+        debug(`tidy found ${count} items to remove`);
+        return this.db.models.Lock.destroy({
+          where: {
+            expiry: {
+              $lte: now,
+            },
+          },
+        })
+    })
+    .then(result => {
+      debug(`tidy completed`);
+    })
+    .catch(err => {
+      debug(`tidy got error`, err);
 
-        return;
-      })
+      return;
+    });
   };
 }
 export default LockStore
