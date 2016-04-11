@@ -9,7 +9,7 @@ services:
 - rabbitmq
 - mysql
 before_install:
-- mysql -e "create database IF NOT EXISTS test;" -uroot
+- mysql -e "create database IF NOT EXISTS \`lock\`;" -uroot
 script:
 - npm run build
 - npm test
