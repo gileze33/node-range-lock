@@ -1,10 +1,8 @@
 language: node_js
 node_js:
-- '4.1'
-- '4.0'
-- '0.12'
-- '0.11'
-- '0.10'
+- 6
+- 4
+- 0.10
 services:
 - rabbitmq
 - mysql
@@ -12,10 +10,11 @@ services:
 before_install:
 - mysql -e "create database IF NOT EXISTS \`lock\`;" -uroot
 script:
-- npm run build
+- npm run typings
+- npm run build -- --declaration
 - npm test
 after_success:
-- test $TRAVIS_NODE_VERSION = "4.1" && npm run coverage
+- test $TRAVIS_NODE_VERSION = "6" && npm run coverage
 deploy:
   provider: npm
   api_key:
@@ -23,7 +22,7 @@ deploy:
   email:
     secure: guJHcegwbeu9KO8r1boA9IuOkMQkO2qM/O137sKgopBHjMiFfgx0JXuFzUUEZiSbNvN5gwgUEGBgKMwTTF3S+IKHGNoAKp48LPWvoTOc4irWQHct1WTuCgMxe99bZw1JFN9mzbeEJxOTcGSZTZ8zUUZ9/dYzuKLNn+iCdXspLySiF0DDo+t5JrtYHWsTviO7EYljR3jNtENvC/8XA08cTmAY+P23mCsktAlIZkEDtkPPPIT2mxEJd3610uBzbmpu32RuzUKN4MpqXRJX6IJEGCAI7dbrFk/Ia0TMI35ICMJ72kAg+XpTC0ve3JJkq+3DVfD/TKo3L38U4vctl/RB7Rhnf2m+w/Z8JGVV1bk7MBYeL0gaz2RM7NfpANh7N1jSIUSzr9Qrgu+xq4WEgPijsyoVmjIotyCuGkBptFInCkkqCrJ/3GkE8hh6JSyxxSeALlgmeoXu5fpvKEZ4cut/x/mKCbIndXy5wLk9ev0BZkLooBWaxYYeY0faZ0dM9AyJ/HjyrDWN2AeqmRiXXoZRvha8mEoTYnWxLNdUVnMMI/UZBDLJquAYfZumiQcM5uTKLtHmEUfMd1LvJEWRzQgVUS1rxpr+mOJzPEwEyD7vmbbp0dBv4lbCrGceoQike+Z83BzQCuNCh7wE1Oa9SKpKRnAGCEZ/xJuL8dCzb5cYeZ4=
   on:
-    node: '4.1'
+    node: 6
     tags: true
     repo: urbanmassage/node-range-lock
   skip_cleanup: true
