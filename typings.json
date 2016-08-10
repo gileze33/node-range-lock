@@ -5,7 +5,6 @@
     "sequelize": "registry:npm/sequelize#3.0.0+20160801095441"
   },
   "globalDependencies": {
-    "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#1da639a106527e0c4010b354a1efe52a3059a291",
     "node": "registry:env/node#6.0.0+20160723033700"
   },
   "globalDevDependencies": {
