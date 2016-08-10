@@ -1,6 +1,10 @@
 .git
 *.tgz
 test/
-**.log
+*.log
+*.map
 
 .vscode/
+
+*.ts
+!*.d.ts

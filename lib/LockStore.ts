@@ -27,7 +27,7 @@ interface Ilock {
   id?: string;
   data: string;
 }
-interface IConnectCB {
+export interface IConnectCB {
   (): void;
 }
 
@@ -41,7 +41,6 @@ class LockStore {
       Lock:any; // sequelize model Obj
     }
   }
-
 
   constructor(url:string) {
       this.url = url;

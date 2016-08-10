@@ -8,8 +8,8 @@ You need a redis instance for thread-safeness, as well as a MySQL DB for the act
 
 The constructor for range-lock takes two parameters:
  - A function that will return an instance of the node 'redis' client
- - A URL pointing to a MySQL database (this uses node-orm under the hood)
- 
+ - A URL pointing to a MySQL database (this uses sequelize under the hood)
+
 E.g.
 
 
@@ -25,7 +25,7 @@ range-lock instances have 3 methods you'll use to set, get and clear locks
 
     rangeLock.set('my-key', 10, 20, 'this is a test', 30000, function(err, success, lock) {
         if(err) throw err;
-        
+
         if(success) {
             // lock.id can now be used alongside the key to retrieve/clear the lock information in another process / request
         }
@@ -39,7 +39,7 @@ range-lock instances have 3 methods you'll use to set, get and clear locks
 
     var lock = rangeLock.get('my-key', 'lock-id-returned-from-set', function(err, lock) {
         if(err) throw err;
-        
+
         if(lock === false) {
             // the lock has gone away
         }
@@ -48,12 +48,12 @@ range-lock instances have 3 methods you'll use to set, get and clear locks
             // lock.data contains the string data you passed in, if any
         }
     });
-    
+
 ### clear(key, lockID, callback)
 
     rangeLock.clear('my-key', 'lock-id-returned-from-set', function(err) {
         if(err) throw err;
-        
+
         // lock is now cleared
     });
 
@@ -65,14 +65,13 @@ E.g.
 
     var lock = rangeLock.get('my-key', 'lock-id-returned-from-set', function(err, lock) {
         if(err) throw err;
-        
+
         if(lock !== false) {
             // we have a valid lock
-            
+
             // do something
-            
+
             // now release the lock
             lock.release(optionalCallback);
         }
     });
-    

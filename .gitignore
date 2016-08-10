@@ -2,5 +2,7 @@ node_modules/
 coverage/
 *.log
 *.js
-*.js.map
+*.map
+*.d.ts
+
 typings/
