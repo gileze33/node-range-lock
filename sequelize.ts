@@ -13,7 +13,7 @@ function sequelizeConnect(url: string): ISequelize{
     'autoMigrateOldSchema': true
   };
   if (process.env['NODE_ENV'] != 'production'){
-    sqlOpts.logging = require('debug')('orm:sql')
+    sqlOpts.logging = require('debug')('range-lock:sql')
   }
   const sequelize = new Sequelize(url, sqlOpts);
 
