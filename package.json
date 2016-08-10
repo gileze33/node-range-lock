@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
-    "typings": "typings install",
+    "typings": "typings install && typings prune",
     "test": "mocha",
     "coverage": "istanbul cover _mocha --",
     "preversion": "npm run build && npm run test -- --bail",
@@ -32,7 +32,7 @@
   "devDependencies": {
     "chai": "^1.10.0",
     "mocha": "^2.1.0",
-    "typescript": "^1.8.5",
-    "typings": "^0.6.8"
+    "typescript": "^1.8.10",
+    "typings": "^1.3.2"
   }
 }
