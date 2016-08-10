@@ -30,7 +30,7 @@ describe('setup', () => {
     const DB_NAME:string = process.env.DB_NAME || 'lock';
     DB_URL = process.env.LOCK_DB_URL || DB_URL_BASE+'/'+DB_NAME;
 
-    RangeLock = require('./index.js');
+    RangeLock = require('../index');
     rangeLock = new RangeLock(client, DB_URL);
     done();
   });
