@@ -5,16 +5,15 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
-    "postinstall": "typings install",
+    "typings": "typings install",
     "test": "mocha",
-    "start": "node index.js",
-    "coverage": "NODE_ENV=test istanbul cover node_modules/mocha/bin/_mocha --",
+    "coverage": "istanbul cover _mocha --",
     "preversion": "npm run build && npm run test -- --bail",
     "postversion": "git push --follow-tags"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/gileze33/node-range-lock"
+    "url": "https://github.com/urbanmassage/node-range-lock"
   },
   "author": "",
   "license": "ISC",
