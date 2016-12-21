@@ -9,7 +9,8 @@
     "test": "mocha",
     "coverage": "istanbul cover _mocha --",
     "preversion": "npm run build && npm run test -- --bail",
-    "postversion": "git push --follow-tags"
+    "postversion": "git push --follow-tags",
+    "postinstall": "typings install && typings prune"
   },
   "repository": {
     "type": "git",
