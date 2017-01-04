@@ -6,17 +6,17 @@ function generateIntersectsSQL(start:{field:string, value:number}, end:{field:st
    // start and end should both look like = {"field": "xxx", "value": 0}
    return {
      [start.field]: {
-       $lte: end.value,
+       $lt: end.value,
      },
      [end.field]: {
-       $gte: start.value,
+       $gt: start.value,
      },
    };
 
-   // return '((`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+end.value+')
-   // OR (`'+start.field+'` >= '+start.value+' AND `'+start.field+'` <= '+end.value+' AND `'+end.field+'` >= '+end.value+')
-   // OR (`'+start.field+'` <= '+start.value+' AND `'+end.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+')
-   // OR (`'+start.field+'` >= '+start.value+' AND `'+end.field+'` <= '+end.value+'))';
+   // return '((`'+start.field+'` < '+start.value+' AND `'+end.field+'` > '+end.value+')
+   // OR (`'+start.field+'` > '+start.value+' AND `'+start.field+'` < '+end.value+' AND `'+end.field+'` > '+end.value+')
+   // OR (`'+start.field+'` < '+start.value+' AND `'+end.field+'` > '+start.value+' AND `'+end.field+'` < '+end.value+')
+   // OR (`'+start.field+'` > '+start.value+' AND `'+end.field+'` < '+end.value+'))';
 };
 
 interface Ilock {
