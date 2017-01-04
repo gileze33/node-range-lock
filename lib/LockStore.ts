@@ -12,11 +12,6 @@ function generateIntersectsSQL(start:{field:string, value:number}, end:{field:st
        $gt: start.value,
      },
    };
-
-   // return '((`'+start.field+'` < '+start.value+' AND `'+end.field+'` > '+end.value+')
-   // OR (`'+start.field+'` > '+start.value+' AND `'+start.field+'` < '+end.value+' AND `'+end.field+'` > '+end.value+')
-   // OR (`'+start.field+'` < '+start.value+' AND `'+end.field+'` > '+start.value+' AND `'+end.field+'` < '+end.value+')
-   // OR (`'+start.field+'` > '+start.value+' AND `'+end.field+'` < '+end.value+'))';
 };
 
 interface Ilock {
