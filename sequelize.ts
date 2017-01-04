@@ -6,11 +6,23 @@ export interface ISequelize {
   models: any   // table models
 }
 
-/* url including uname, password & database
+/**
+ * @param url including uname, password & database
  */
 function sequelizeConnect(url: string): ISequelize{
   let sqlOpts:any = {
-    'autoMigrateOldSchema': true
+    'autoMigrateOldSchema': true,
+    'pool':{
+      'validate': (client) => {
+        if (client.state != 'authenticated') {
+          console.error(`DB client not authenticated, state: ${client.state}`)
+        }
+        if (client.state == 'disconnected') {
+          return Sequelize.Promise.reject(new Error(`Found a DB client in state: ${client.state}`));
+        }
+        return Sequelize.Promise.resolve();
+      }
+    }
   };
   if (process.env['NODE_ENV'] != 'production'){
     sqlOpts.logging = require('debug')('range-lock:sql')
